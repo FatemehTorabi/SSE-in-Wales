@@ -1,0 +1,25 @@
+---------------------------------------------------
+--BY : Fatemeh Torabi
+--DT : 2019-Mar-01
+--schema: 0866
+---------------------------------------------------
+--STUDY SPECIFICATIONS:
+--START_DT 	: 	01-01-2000
+--END_DT 	:	01-01-2018
+--AGE		: 	18+
+--GNDER		: 	1,2
+----------------------------------------------------
+--MASTER TABLES OF CONDITIONS
+----------------------------------------------------
+--WLGP DATASET:
+--------------------------------------------
+--AF 				: 	SAILW0594V.GP_AF_20170905
+--AC AND AP			:	SAILW0594V.GP_AC_AP_20170905
+--CHAD(expect DIAB) :	"SAILW0594V"."GP_CHAD_20170905"
+--DIAB				: 	"SAILW0594V"."GP_DIAB_20170905"
+--HASBLED DRUGS		:	"SAILW0594V"."GP_DRUG_HASBLED_20170905"
+--INR 				:	"SAILW0594V"."GP_INR_20170905"
+--RENAL & LIVER		: 	"SAILW0594V"."GP_RENAL_LIVER_20170905"			
+
+--	PEDW DATASET:
+--	A TABLE CONTAINING CHADS AND HASBLED CONDITONS EXCEPT(MIs) :	SAILW0594V.PEDW_CHAD_HAS_20170906

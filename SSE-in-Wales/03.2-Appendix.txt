@@ -1,0 +1,7 @@
+----------------------------------------------------
+--appendix codes
+SELECT * FROM SAILW0866V.CD_READ_20170814
+ORDER BY READ_TYPE
+
+SELECT * FROM SAILW0866V.CD_ICD10_BLEED_20181220
+-------------------------------------------------

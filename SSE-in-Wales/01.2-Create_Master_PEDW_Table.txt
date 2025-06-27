@@ -1,0 +1,143 @@
+--------------------------------------------------------------------------
+--hospital admissions: Master table for all interactions
+--------------------------------------------------------------------------
+CREATE TABLE SAILW0866V.PEDW_CHAD_HAS_20170906 (
+	ALF_E			BIGINT,
+	GNDR_CD			CHAR(1),
+	ADMIS_DT		DATE,
+	DISCH_DT		DATE,
+	CURR_PROV_UNIT_CD	CHAR(6),
+	ALF_STS_CD		CHAR(2),
+	EPI_NUM			CHAR(2),
+	EPI_STR_DT		DATE,
+	EPI_END_DT		DATE,
+	EPI_DIAG_1234	VARCHAR(260),
+	OPER_CD			VARCHAR(10),
+	DIAG_CD_1234	CHAR(4),
+	DIAG_DESC_4		VARCHAR(255),
+	ICD_TYPE		VARCHAR(255),
+	PREV_MI			VARCHAR(255),
+	CHADVASC		VARCHAR(255),
+	HAS_BLED		VARCHAR(255),
+	OTHER			VARCHAR(255),
+	STROKE_TYPE		VARCHAR(255)
+)
+DISTRIBUTE BY HASH(ALF_E,CURR_PROV_UNIT_CD);
+
+COMMIT;
+
+CALL FNC.REORG('SAILW0866V.PEDW_CHAD_HAS_20170906')
+
+INSERT INTO SAILW0866V.PEDW_CHAD_HAS_20170906
+SELECT  
+				sp.alf_pe, sp.gndr_cd,sp.admis_dt, 
+				sp.disch_dt, 	sp.curr_prov_unit_cd, sp.alf_sts_cd, 
+				ep.epi_num, ep.epi_str_dt,ep.epi_end_dt, 
+				ep.diag_cd_1234 epi_diag1234, ep.oper_cd,
+				
+				diag.diag_cd_1234,
+				
+Icd.DIAG_DESC_4, ICD.ICD_TYPE, ICD.PREV_MI, ICD.CHADSVASC,ICD.HAS_BLED,ICD.OTHER,ICD.STROKE_TYPE
+				
+			from 
+				SAIL0866V.PEDW_SPELL_20190131 sp
+			left join
+				SAIL0866V.PEDW_EPISODE_20190131 ep
+				on 
+				sp.prov_unit_cd=ep.prov_unit_cd
+				AND 
+				sp.SPELL_NUM_PE=ep.SPELL_NUM_PE
+				AND 
+				sp.alf_sts_cd in ('1','4','39')
+			left join
+				SAIL0866V.PEDW_DIAG_20190131 diag
+				on
+				diag.prov_unit_cd=sp.prov_unit_cd
+				and
+				diag.SPELL_NUM_PE=sp.SPELL_NUM_PE
+				and
+				diag.epi_num=ep.epi_num
+		RIGHT OUTER join
+				(
+				SELECT * FROM "SAILW0594V"."CD_ICD10_20170814"
+				WHERE 
+				CHADSVASC IS NOT NULL
+				OR 
+				HAS_BLED IS NOT NULL
+				OR PREV_MI IS NOT NULL
+				) icd
+		ON
+				diag.diag_cd_1234=icd.diag_cd_4
+		
+
+COMMIT;
+
+------------------------------------------------------------
+ALTER TABLE SAILW0866V.PEDW_BLEED_20190714 activate not logged initially
+
+
+CREATE TABLE SAILW0866V.PEDW_BLEED_20190714 AS (
+--insert into SAILW0866V.PEDW_BLEED_20190714
+select 
+				sp.ALF_PE, sp.gndr_cd,sp.admis_dt, 
+				sp.admis_mthd_cd,sp.admis_source_cd, 
+				sp.disch_dt,sp.disch_mthd_cd,sp.pat_class_cd,
+				sp.curr_prov_unit_cd, sp.alf_sts_cd, 
+
+				ep.epi_num, ep.epi_str_dt,ep.epi_end_dt, ep.age_epi_str_yr,
+								
+				SUBSTR(UPPER(ep.Diag_cd_123),1,3)||SUBSTR(UPPER(ep.DIAG_CD_4),1,1) epi_diag_1234 ,
+
+				diag.diag_cd_1234, 
+				
+				icd.CODE, ICD.DESCRIPTION, ICD.NAME
+				
+			from 
+				SAIL0866V.PEDW_DIAG_20190515 diag
+RIGHT OUTER JOIN				(
+				SELECT * FROM SAILW0866V.CD_ICD10_BLEED_20181220
+				) icd
+		on
+				diag.diag_cd_1234=icd.CODE
+
+LEFT JOIN
+				SAIL0866V.PEDW_SPELL_20190515 sp
+		ON			
+				diag.prov_unit_cd=sp.prov_unit_cd
+				and
+				diag.SPELL_NUM_PE=sp.SPELL_NUM_PE
+				AND 
+				sp.alf_sts_cd in ('1','4','39')
+left join
+				SAIL0866V.PEDW_EPISODE_20190515 ep
+				on 
+				sp.prov_unit_cd=ep.prov_unit_cd
+				AND 
+				sp.SPELL_NUM_PE=ep.SPELL_NUM_PE
+				AND 
+				diag.epi_num=ep.epi_num
+)WITH NO DATA;
+
+COMMIT; 
+
+-----------------------------------------------------------
+
+ALTER TABLE SAILW0866V.GP_BLEED_20190714 activate not logged initially
+COMMIT;
+
+CREATE TABLE SAILW0866V.GP_BLEED_20190714 AS(
+--INSERT INTO SAILW0866V.GP_BLEED_20190714
+	SELECT 
+	GP.ALF_PE,GP.ALF_STS_CD, GP.EVENT_DT, GP.EVENT_CD,CD.DESCRIPTION,GP.EVENT_VAL, GP.ALF_MTCH_PCT, GP.LOCAL_NUM_PE, GP.GNDR_CD, GP.WOB,GP.REG_CAT_CD,GP.PRAC_CD_PE,
+	CD.CODE
+	 FROM 
+	SAIL0866V.WLGP_GP_EVENT_ALF_CLEANSED_20180820 GP
+RIGHT JOIN
+	(
+	SELECT * FROM SAILW0866V.CD_READ_BLEED_20181220
+	) cd
+ON 
+GP.EVENT_CD=CD.CODE
+WHERE YEAR(GP.EVENT_DT) >= '2012'
+)
+WITH NO DATA;

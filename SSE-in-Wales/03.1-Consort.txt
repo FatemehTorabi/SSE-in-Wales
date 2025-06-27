@@ -1,0 +1,20 @@
+
+------------------------------------------------------------
+--CONSORT:
+-------------------------------------------------------------
+
+SELECT COUNT(DISTINCT ALF_PE) FROM 
+		SAILW0866V.MSC_HASB_20190807 
+WHERE 
+		(DEATH_DT IS NULL OR DEATH_DT > '2017-01-01') --70,471
+		AND ALF_PE IN (SELECT DISTINCT ALF_PE FROM SAIL0866V.PEDW_SPELL_20190515) 		
+		AND STUDY_GP_COVERAGE_DAYS >= 180 ---59,937 ---59,937
+	--	LSOA_CD <> 'NULL' 
+	--	SUBSTRING(LSOA_CD, 1, 1)='W' 
+	--OVER 18
+AND BASE_AGE >= 18 
+AND AC_BASELINE_2017=1
+--welsh lsoa at diagnosis
+AND alf_pe IN (SELECT * FROM sailw0866v.ALF_ANALYSED_MSC_20190809) ---38,784
+					
+
